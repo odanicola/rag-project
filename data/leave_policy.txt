@@ -1,0 +1,11 @@
+Employees are entitled to 12 days of annual leave per year.
+
+Employees must complete at least 3 months of employment before
+they can request annual leave.
+
+Leave requests must be submitted through the HR system.
+
+Employees should submit leave requests at least 3 working days
+before the requested leave date.
+
+Managers are responsible for approving or rejecting leave requests.
