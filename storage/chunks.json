@@ -1,0 +1,38 @@
+[
+  {
+    "source": "data_insurance.txt",
+    "text": "Life insurance provides financial protection for beneficiaries\nin the event of the insured person's death."
+  },
+  {
+    "source": "data_insurance.txt",
+    "text": "Customers must be between 18 and 65 years old to purchase\nthe standard life insurance product."
+  },
+  {
+    "source": "data_insurance.txt",
+    "text": "Premiums depend on age, coverage amount, and policy duration."
+  },
+  {
+    "source": "data_insurance.txt",
+    "text": "Customers can purchase the policy online if they meet the\neligibility requirements."
+  },
+  {
+    "source": "leave_policy.txt",
+    "text": "Employees are entitled to 12 days of annual leave per year."
+  },
+  {
+    "source": "leave_policy.txt",
+    "text": "Employees must complete at least 3 months of employment before\nthey can request annual leave."
+  },
+  {
+    "source": "leave_policy.txt",
+    "text": "Leave requests must be submitted through the HR system."
+  },
+  {
+    "source": "leave_policy.txt",
+    "text": "Employees should submit leave requests at least 3 working days\nbefore the requested leave date."
+  },
+  {
+    "source": "leave_policy.txt",
+    "text": "Managers are responsible for approving or rejecting leave requests."
+  }
+]

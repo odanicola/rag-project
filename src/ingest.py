@@ -1,37 +1,117 @@
 from pathlib import Path
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+import json
+
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+DATA_DIR = PROJECT_ROOT / "data"
+STORAGE_DIR = PROJECT_ROOT / "storage"
+
+STORAGE_DIR.mkdir(exist_ok=True)
+
+EMBEDDINGS_FILE = STORAGE_DIR / "embeddings.npy"
+CHUNKS_FILE = STORAGE_DIR / "chunks.json"
+
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def load_documents():
+
     documents = []
-    print(len(list(DATA_DIR.glob("*.txt"))), "file teks ditemukan")
+
     for file_path in DATA_DIR.glob("*.txt"):
+
         text = file_path.read_text(encoding="utf-8")
+
         documents.append({
             "source": file_path.name,
             "text": text
         })
+
     return documents
 
 
-def chuck_text(text, chunk_size=80, overlap=20):
-    words = text.split()
+def chunk_text(text):
+
     chunks = []
-    start = 0
-    while start < len(words):
-        end = start + chunk_size
-        chunk = " ".join(words[start:end])
-        chunks.append(chunk)
-        start += chunk_size - overlap
+
+    paragraphs = text.split("\n\n")
+
+    for paragraph in paragraphs:
+
+        paragraph = paragraph.strip()
+
+        if paragraph:
+            chunks.append(paragraph)
+
     return chunks
 
 
-if __name__ == "__main__":
+def build_chunks():
+
+    all_chunks = []
+
     documents = load_documents()
+
     for document in documents:
-        chunks = chuck_text(document["text"])
-        print(f"Document: {document['source']}, Chunks: {len(chunks)}")
-        for i, chunk in enumerate(chunks):
-            # Print first 50 characters of each chunk
-            print(f"Chunk {i + 1}: {chunk[:50]}...")
-            print(chunk)
+
+        chunks = chunk_text(document["text"])
+
+        for chunk in chunks:
+
+            all_chunks.append({
+                "source": document["source"],
+                "text": chunk
+            })
+
+    return all_chunks
+
+
+def main():
+
+    print("Loading documents...")
+
+    chunks = build_chunks()
+
+    print(f"Total chunks: {len(chunks)}")
+
+    texts = [chunk["text"] for chunk in chunks]
+
+    print("Creating embeddings...")
+
+    embeddings = model.encode(
+        texts,
+        convert_to_numpy=True
+    )
+
+    print("Embedding shape:", embeddings.shape)
+
+    np.save(
+        EMBEDDINGS_FILE,
+        embeddings
+    )
+
+    with open(
+        CHUNKS_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            chunks,
+            file,
+            indent=2,
+            ensure_ascii=False
+        )
+
+    print("\nSaved:")
+    print(EMBEDDINGS_FILE)
+    print(CHUNKS_FILE)
+
+
+if __name__ == "__main__":
+    main()
