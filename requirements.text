@@ -3,3 +3,4 @@ scikit-learn
 requests
 retrieve
 python-dotenv
+faiss-cpu

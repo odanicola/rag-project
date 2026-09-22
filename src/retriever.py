@@ -1,47 +1,79 @@
 from pathlib import Path
 import json
-import numpy as np
+
+import faiss
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 STORAGE_DIR = PROJECT_ROOT / "storage"
 
-EMBEDDINGS_FILE = STORAGE_DIR / "embeddings.npy"
+INDEX_FILE = STORAGE_DIR / "faiss.index"
 CHUNKS_FILE = STORAGE_DIR / "chunks.json"
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
 
 
 def load_knowledge_base():
-    embeddings = np.load(EMBEDDINGS_FILE)
-    with open(CHUNKS_FILE, "r", encoding="utf-8") as file:
+
+    index = faiss.read_index(
+        str(INDEX_FILE)
+    )
+
+    with open(
+        CHUNKS_FILE,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
         chunks = json.load(file)
-    return embeddings, chunks
+
+    return index, chunks
 
 
-def retrieve(query, top_k=5):
-    embeddings, chunks = load_knowledge_base()
+def retrieve(query, top_k=3):
 
-    # print("embeddings", embeddings)
-    # print("chuncks", chunks)
+    index, chunks = load_knowledge_base()
 
     query_embedding = model.encode(
         [query],
         convert_to_numpy=True
     )
 
-    # print("query: ", query)
-    # print("query_embedding: ", query_embedding)
+    query_embedding = query_embedding.astype(
+        "float32"
+    )
 
-    similarities = cosine_similarity(query_embedding, embeddings)[0]
-    ranked_indices = similarities.argsort()[::-1]
+    # Same normalization used during ingestion
+    faiss.normalize_L2(
+        query_embedding
+    )
+
+    # Search FAISS
+    scores, indices = index.search(
+        query_embedding,
+        top_k
+    )
+
     results = []
-    for index in ranked_indices[:top_k]:
+
+    for score, index_id in zip(
+        scores[0],
+        indices[0]
+    ):
+
+        # FAISS returns -1 if no result exists
+        if index_id == -1:
+            continue
+
         results.append({
-            "source": chunks[index]["source"],
-            "text": chunks[index]["text"],
-            "score": float(similarities[index])
+            "source": chunks[index_id]["source"],
+            "text": chunks[index_id]["text"],
+            "score": float(score)
         })
 
     return results
